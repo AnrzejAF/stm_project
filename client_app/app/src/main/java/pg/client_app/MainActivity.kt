@@ -42,6 +42,10 @@ import pg.client_app.ui.theme.Client_appTheme
 
 
 class MainActivity : ComponentActivity() {
+
+    // Add an injectable sender for testability
+    var requestSender: ((Int, Int, Int, Int, (String?) -> Unit) -> Unit)? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -75,16 +79,18 @@ class MainActivity : ComponentActivity() {
                     onValueChange = { leftTopX = it },
                     label = { Text("Lewy Górny X") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1F).padding(1.dp)
-
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(1.dp)
                 )
                 TextField(
                     value = leftTopY,
                     onValueChange = { leftTopY = it },
                     label = { Text("Lewy Górny Y") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1F).padding(1.dp)
-
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(1.dp)
                 )
             }
 
@@ -94,14 +100,18 @@ class MainActivity : ComponentActivity() {
                     onValueChange = { rightBottomX = it },
                     label = { Text("Prawy Dolny X") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1F).padding(1.dp)
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(1.dp)
                 )
                 TextField(
                     value = rightBottomY,
                     onValueChange = { rightBottomY = it },
                     label = { Text("Prawy Dolny Y") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.weight(1F).padding(1.dp)
+                    modifier = Modifier
+                        .weight(1F)
+                        .padding(1.dp)
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -135,9 +145,11 @@ class MainActivity : ComponentActivity() {
 
             // Displaying the result
             if (imageBase64 != null) {
-                Canvas(modifier = Modifier
-                    .fillMaxWidth()
-                    .height(200.dp)) {
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                ) {
                     // TODO: Decode Base64 and display the image
                 }
             }
@@ -159,37 +171,40 @@ class MainActivity : ComponentActivity() {
         rightBottomY: Int,
         onResponse: (String?) -> Unit
     ) {
-        val namespace = "http://your.namespace.com/"
-        val methodName = "getMapFragment"
-        val soapAction = "$namespace$methodName"
-        val url = "http://yourserver.com/Service?wsdl"
+        // Use the injectable sender for tests
+        requestSender?.invoke(leftTopX, leftTopY, rightBottomX, rightBottomY, onResponse) ?: run {
+            val namespace = "http://your.namespace.com/"
+            val methodName = "getMapFragment"
+            val soapAction = "$namespace$methodName"
+            val url = "http://yourserver.com/Service?wsdl"
 
-        val request = SoapObject(namespace, methodName).apply {
-            addProperty("leftTopX", leftTopX)
-            addProperty("leftTopY", leftTopY)
-            addProperty("rightBottomX", rightBottomX)
-            addProperty("rightBottomY", rightBottomY)
-        }
+            val request = SoapObject(namespace, methodName).apply {
+                addProperty("leftTopX", leftTopX)
+                addProperty("leftTopY", leftTopY)
+                addProperty("rightBottomX", rightBottomX)
+                addProperty("rightBottomY", rightBottomY)
+            }
 
-        val envelope = SoapSerializationEnvelope(SoapEnvelope.VER11).apply {
-            dotNet = false
-            setOutputSoapObject(request)
-        }
+            val envelope = SoapSerializationEnvelope(SoapEnvelope.VER11).apply {
+                dotNet = false
+                setOutputSoapObject(request)
+            }
 
-        val httpTransport = HttpTransportSE(url)
+            val httpTransport = HttpTransportSE(url)
 
-        // Use coroutine for background execution
-        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
-            try {
-                httpTransport.call(soapAction, envelope)
-                val response = envelope.response as? String
-                withContext(Dispatchers.Main) {
-                    onResponse(response)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    onResponse(null)
+            // Use coroutine for background execution
+            kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+                try {
+                    httpTransport.call(soapAction, envelope)
+                    val response = envelope.response as? String
+                    withContext(Dispatchers.Main) {
+                        onResponse(response)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    withContext(Dispatchers.Main) {
+                        onResponse(null)
+                    }
                 }
             }
         }
