@@ -5,11 +5,11 @@ plugins {
 
 android {
     namespace = "pg.client_app"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "pg.client_app"
-        minSdk = 21
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
