@@ -7,6 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -44,7 +46,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             Client_appTheme {
-                Surface(color = Color.White) {
+                Surface(color = Color.Gray) {
                     MapFragmentApp()
                 }
             }
@@ -66,37 +68,42 @@ class MainActivity : ComponentActivity() {
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            TextField(
-                value = leftTopX,
-                onValueChange = { leftTopX = it },
-                label = { Text("Lewy Górny X") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            TextField(
-                value = leftTopY,
-                onValueChange = { leftTopY = it },
-                label = { Text("Lewy Górny Y") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            TextField(
-                value = rightBottomX,
-                onValueChange = { rightBottomX = it },
-                label = { Text("Prawy Dolny X") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            TextField(
-                value = rightBottomY,
-                onValueChange = { rightBottomY = it },
-                label = { Text("Prawy Dolny Y") },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth()
-            )
+
+            Row {
+                TextField(
+                    value = leftTopX,
+                    onValueChange = { leftTopX = it },
+                    label = { Text("Lewy Górny X") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1F).padding(1.dp)
+
+                )
+                TextField(
+                    value = leftTopY,
+                    onValueChange = { leftTopY = it },
+                    label = { Text("Lewy Górny Y") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1F).padding(1.dp)
+
+                )
+            }
+
+            Row {
+                TextField(
+                    value = rightBottomX,
+                    onValueChange = { rightBottomX = it },
+                    label = { Text("Prawy Dolny X") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1F).padding(1.dp)
+                )
+                TextField(
+                    value = rightBottomY,
+                    onValueChange = { rightBottomY = it },
+                    label = { Text("Prawy Dolny Y") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    modifier = Modifier.weight(1F).padding(1.dp)
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
@@ -185,6 +192,15 @@ class MainActivity : ComponentActivity() {
                     onResponse(null)
                 }
             }
+        }
+    }
+
+    @Preview(showBackground = true)
+    @Composable
+    fun GreetingPreview() {
+        Client_appTheme {
+            MapFragmentApp()
+
         }
     }
 }
