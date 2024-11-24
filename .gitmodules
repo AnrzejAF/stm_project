@@ -1,0 +1,3 @@
+[submodule "map_service"]
+	path = map_service
+	url = https://github.com/dvnDC/map_service
