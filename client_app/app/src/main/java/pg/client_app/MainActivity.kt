@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,18 +38,20 @@ import org.ksoap2.serialization.SoapObject
 import org.ksoap2.serialization.SoapSerializationEnvelope
 import org.ksoap2.transport.HttpTransportSE
 import pg.client_app.ui.theme.Client_appTheme
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 
 
 class MainActivity : ComponentActivity() {
 
-    // Add an injectable sender for testability
     var requestSender: ((Int, Int, Int, Int, (String?) -> Unit) -> Unit)? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             Client_appTheme {
-                Surface(color = Color.Gray) {
+                Surface(color = Color.White) {
                     MapFragmentApp()
                 }
             }
@@ -66,13 +67,14 @@ class MainActivity : ComponentActivity() {
         var imageBase64 by remember { mutableStateOf<String?>(null) }
         var showToast by remember { mutableStateOf(false) }
 
+        val context = LocalContext.current
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             Row {
                 TextField(
                     value = leftTopX,
@@ -80,7 +82,7 @@ class MainActivity : ComponentActivity() {
                     label = { Text("Lewy Górny X") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier
-                        .weight(1F)
+                        .weight(1f)
                         .padding(1.dp)
                 )
                 TextField(
@@ -89,7 +91,7 @@ class MainActivity : ComponentActivity() {
                     label = { Text("Lewy Górny Y") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier
-                        .weight(1F)
+                        .weight(1f)
                         .padding(1.dp)
                 )
             }
@@ -101,7 +103,7 @@ class MainActivity : ComponentActivity() {
                     label = { Text("Prawy Dolny X") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier
-                        .weight(1F)
+                        .weight(1f)
                         .padding(1.dp)
                 )
                 TextField(
@@ -110,10 +112,11 @@ class MainActivity : ComponentActivity() {
                     label = { Text("Prawy Dolny Y") },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     modifier = Modifier
-                        .weight(1F)
+                        .weight(1f)
                         .padding(1.dp)
                 )
             }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
@@ -139,20 +142,17 @@ class MainActivity : ComponentActivity() {
             Spacer(modifier = Modifier.height(16.dp))
 
             if (showToast) {
-                ToastMessage("Uzupełnij wszystkie pola")
+                Toast.makeText(context, "Uzupełnij wszystkie pola", Toast.LENGTH_SHORT).show()
                 showToast = false
             }
 
-            // Displaying the result
-            if (imageBase64 != null) {
-                Canvas(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                ) {
-                    // TODO: Decode Base64 and display the image
-                }
-            }
+            imageBase64?.let { base64 ->
+                Base64Image(base64)
+            } ?: Text(
+                text = "Brak danych do wyświetlenia mapy",
+                color = Color.Gray,
+                modifier = Modifier.padding(16.dp)
+            )
         }
     }
 
@@ -198,18 +198,40 @@ class MainActivity : ComponentActivity() {
                     httpTransport.call(soapAction, envelope)
                     val response = envelope.response as? String
                     withContext(Dispatchers.Main) {
-                        onResponse(response)
+                        onResponse(response ?: ImageTestBaseString)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
                     withContext(Dispatchers.Main) {
-                        onResponse(null)
+                        onResponse(ImageTestBaseString)
                     }
                 }
             }
         }
     }
 
+    @Composable
+    fun Base64Image(base64String: String) {
+        val decodedBytes = android.util.Base64.decode(base64String, android.util.Base64.DEFAULT)
+        val bitmap = android.graphics.BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
+
+        if (bitmap != null) {
+            Image(
+                bitmap = bitmap.asImageBitmap(),
+                contentDescription = "Base64 Decoded Image",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentScale = ContentScale.Fit
+            )
+        } else {
+            Text(
+                text = "Nie udało się załadować obrazu",
+                color = Color.Red,
+                modifier = Modifier.padding(16.dp)
+            )
+        }
+    }
     @Preview(showBackground = true)
     @Composable
     fun GreetingPreview() {
