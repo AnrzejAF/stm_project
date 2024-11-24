@@ -61,6 +61,8 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation (libs.ksoap2.android)
     implementation(libs.core.ktx)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
     testImplementation(libs.junit)
     testImplementation(libs.mockito.core)
     androidTestImplementation(libs.androidx.junit)

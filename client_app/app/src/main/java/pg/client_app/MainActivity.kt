@@ -171,12 +171,10 @@ class MainActivity : ComponentActivity() {
         rightBottomY: Int,
         onResponse: (String?) -> Unit
     ) {
-        // Use the injectable sender for tests
-        requestSender?.invoke(leftTopX, leftTopY, rightBottomX, rightBottomY, onResponse) ?: run {
-            val namespace = "http://your.namespace.com/"
-            val methodName = "getMapFragment"
-            val soapAction = "$namespace$methodName"
-            val url = "http://yourserver.com/Service?wsdl"
+        val namespace = "http://your.namespace.com/"
+        val methodName = "getMapFragment"
+        val soapAction = "$namespace$methodName"
+        val url = "http://10.0.2.2:3000/api/v1/map/action"
 
             val request = SoapObject(namespace, methodName).apply {
                 addProperty("leftTopX", leftTopX)
@@ -190,25 +188,29 @@ class MainActivity : ComponentActivity() {
                 setOutputSoapObject(request)
             }
 
-            val httpTransport = HttpTransportSE(url)
+        val httpTransport = HttpTransportSE(url).apply {
+            debug = true
+        }
 
-            // Use coroutine for background execution
-            kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
-                try {
-                    httpTransport.call(soapAction, envelope)
-                    val response = envelope.response as? String
-                    withContext(Dispatchers.Main) {
-                        onResponse(response ?: ImageTestBaseString)
-                    }
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    withContext(Dispatchers.Main) {
-                        onResponse(ImageTestBaseString)
-                    }
+        kotlinx.coroutines.GlobalScope.launch(Dispatchers.IO) {
+            try {
+                httpTransport.call(soapAction, envelope)
+
+                val response = envelope.bodyIn as? SoapObject
+                val imageBase64 = response?.getProperty("image")?.toString()
+
+                withContext(Dispatchers.Main) {
+                    onResponse(imageBase64)
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+                withContext(Dispatchers.Main) {
+                    onResponse(null)
                 }
             }
         }
     }
+
 
     @Composable
     fun Base64Image(base64String: String) {
